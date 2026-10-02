@@ -141,3 +141,28 @@ Strawberry___Leaf_scorch       0.97      0.97      0.97       119
 
 ```
 ---
+
+## Evaluation Run: tomato_color (2026-10-02 11:14:15)
+- **Overall Test Loss:** 0.3747
+- **Overall Test Accuracy:** 85.90%
+
+```text
+                                               precision    recall  f1-score   support
+
+                      Tomato___Bacterial_spot       0.86      0.95      0.90       213
+                        Tomato___Early_blight       0.82      0.80      0.81        88
+                         Tomato___Late_blight       0.98      0.73      0.84       173
+                           Tomato___Leaf_Mold       1.00      0.56      0.72        94
+                  Tomato___Septoria_leaf_spot       0.63      0.99      0.77       188
+Tomato___Spider_mites Two-spotted_spider_mite       0.87      0.61      0.72       164
+                         Tomato___Target_Spot       0.81      0.81      0.81       145
+       Tomato___Tomato_Yellow_Leaf_Curl_Virus       0.99      0.97      0.98       528
+                 Tomato___Tomato_mosaic_virus       0.90      0.82      0.86        45
+                             Tomato___healthy       0.77      0.88      0.82       170
+
+                                     accuracy                           0.86      1808
+                                    macro avg       0.86      0.81      0.82      1808
+                                 weighted avg       0.88      0.86      0.86      1808
+
+```
+---
