@@ -1,0 +1,19 @@
+# Ignore downloaded dataset images
+data/raw/*
+!data/raw/.gitkeep
+
+# Ignore trained model artifacts
+models/*
+!models/.gitkeep
+
+# Ignore logs & checkpoints
+logs/
+*.keras
+*.h5
+
+# Python & Environment artifacts
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+ml-env/
+.env
