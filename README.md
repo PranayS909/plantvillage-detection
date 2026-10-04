@@ -1,55 +1,99 @@
-# Leaf Disease Detection Using Deep Convolutional Neural Networks
+# 🍃 LeafScan AI — Two-Stage Plant Pathology Diagnostic System
 
-An end-to-end computer vision pipeline to classify plant leaf diseases using TensorFlow/Keras and the PlantVillage dataset. The project supports isolated single-crop models (e.g., Apple, Tomato, Potato) as well as multi-crop classification architectures with automated data ingestion, real-time augmentation, and callback-driven training.
+An end-to-end deep learning diagnostic tool built on the **PlantVillage** dataset. The system employs a **two-stage hierarchical inference architecture** to first identify the plant species and then route the leaf to a dedicated specialist model for targeted foliar disease classification.
 
----
-
-## Table of Contents
-
-1. [Overview](https://www.google.com/search?q=%23overview)
-2. [Project Structure](https://www.google.com/search?q=%23project-structure)
-3. [Environment Setup](https://www.google.com/search?q=%23environment-setup)
-4. [Dataset Ingestion](https://www.google.com/search?q=%23dataset-ingestion)
-5. [Model Architecture](https://www.google.com/search?q=%23model-architecture)
-6. [Training & Evaluation Pipeline](https://www.google.com/search?q=%23training--evaluation-pipeline)
-7. [Inference](https://www.google.com/search?q=%23inference)
-8. [Common Issues & Solutions](https://www.google.com/search?q=%23common-issues--solutions)
+Includes a lightweight **FastAPI** backend with a responsive **Tailwind CSS** web client supporting live camera capture, drag-and-drop uploads, and dynamic crop pathology tracking.
 
 ---
 
-## Overview
+## 📌 Architecture Overview
 
-The primary goal is the automated detection of foliar fungal, bacterial, and viral diseases from leaf imagery. Key features:
 
-* **Zero-leakage split strategy:** Deterministic generation of training, validation, and held-out test splits.
-* **In-graph augmentations:** Real-time affine transformations (rotations, flips, zoom) baked directly into the model to avoid CPU/I/O bottlenecks.
-* **Regularization & Stability:** Batch Normalization, Dropout, and `GlobalAveragePooling2D` to prevent overfitting on static laboratory backgrounds.
-* **Callback-guided optimization:** Early stopping and adaptive learning rate decay (`ReduceLROnPlateau`).
+```
+
+User Input Image (Leaf Photo)
+│
+▼
+┌────────────────────────────────────────┐
+│ Stage 1: Species Identifier            │
+│ Architecture: MobileNetV2 (Pretrained) │
+│ Output: 9 Crop Classes (224x224 input) │
+└──────────────────┬─────────────────────┘
+│
+▼
+┌────────────────────────────────────────┐
+│ Crop Router & Gatekeeper               │
+│ - Apple, Tomato, Corn, Potato, etc.    │
+└──────────────────┬─────────────────────┘
+│
+▼
+┌────────────────────────────────────────┐
+│ Stage 2: Crop Pathology Specialist     │
+│ Architecture: Custom CNN / Fine-Tuned  │
+│ Output: Disease vs. Healthy (256x256)  │
+└──────────────────┬─────────────────────┘
+│
+▼
+Final Diagnostic & Advisory
+
+```
+
+### Why Hierarchical?
+- **Simplified Decision Boundaries:** Individual specialist models only need to differentiate between diseases affecting that specific host species (e.g., distinguishing *Early Blight* vs. *Late Blight* without confusing them with *Apple Scab*).
+- **Modular Scalability:** New crops can be added or retrained independently without retraining the entire catalog.
+- **Resource Efficient:** Inference loads the Stage 1 gatekeeper and conditionally engages the specific Stage 2 model.
 
 ---
 
-## Project Structure
+## 🌿 Species & Disease Coverage
+
+| Plant Species | Stage 1 (Species ID) | Stage 2 (Disease Model) | Detectable Conditions |
+| :--- | :---: | :---: | :--- |
+| **Apple** | ✅ | ✅ Active | *Apple Scab*, *Black Rot*, *Cedar Apple Rust*, *Healthy* |
+| **Cherry** | ✅ | 🔄 In Progress | — |
+| **Corn (Maize)** | ✅ | 🔄 In Progress | — |
+| **Grape** | ✅ | 🔄 In Progress | — |
+| **Peach** | ✅ | 🔄 In Progress | — |
+| **Pepper (Bell)**| ✅ | 🔄 In Progress | — |
+| **Potato** | ✅ | 🔄 In Progress | — |
+| **Strawberry** | ✅ | 🔄 In Progress | — |
+| **Tomato** | ✅ | 🔄 In Progress | — |
+
+---
+
+## 🛠 Tech Stack & Environment
+
+- **Deep Learning:** TensorFlow 2.x, Keras, OpenCV, NumPy, Scikit-learn
+- **API & Backend:** FastAPI, Uvicorn, Python-Multipart
+- **Frontend:** HTML5, Tailwind CSS, Vanilla JavaScript, FontAwesome
+- **Environment:** Ubuntu on WSL2, CUDA-accelerated GPU runtime
+
+---
+
+## 📁 Repository Structure
 
 ```text
 plantvillage-detection/
+├── app.py                      # FastAPI application with two-stage pipeline
+├── static/
+│   └── index.html              # Diagnostic Web UI (Tailwind CSS + JS)
+├── models/
+│   ├── species_classifier.keras# Stage 1: MobileNetV2 species classifier
+│   ├── species_labels.txt      # Stage 1: 9 class label mapping
+│   ├── apple_leaf_classifier.keras # Stage 2: Apple disease specialist
+│   └── .gitkeep
 ├── data/
-│   └── raw/
+│   └── raw/                    # PlantVillage image folders (ignored by git)
 │       ├── apple_color/
-│       │   ├── Apple___Apple_scab/
-│       │   ├── Apple___Black_rot/
-│       │   ├── Apple___Cedar_apple_rust/
-│       │   └── Apple___healthy/
-│       ├── cherry_color/
-│       ├── corn_color/
-│       ├── grape_color/
-│       ├── peach_color/
-│       ├── pepper_color/
-│       ├── potato_color/
-│       ├── strawberry_color/
-│       └── tomato_color/
-├── logs/                   # TensorBoard event logs
-├── models/                 # Serialized model checkpoints (.keras)
-├── detect.ipynb            # Interactive development notebook
+│       ├── tomato_color/
+│       └── ...
+├── notebooks/
+│   ├── 01_species_classifier.ipynb
+│   └── 02_apple_disease_specialist.ipynb
+├── reports/
+│   ├── figures/                # Saved loss and accuracy curves
+│   └── evaluation_summary.md   # Per-class precision, recall, and F1 logs
+├── .gitignore
 ├── requirements.txt
 └── README.md
 
@@ -57,161 +101,86 @@ plantvillage-detection/
 
 ---
 
-## Environment Setup
+## 🚀 Quickstart Guide
 
-### 1. Prerequisites
-
-* Python 3.10+
-* CUDA-compatible GPU (recommended) or CPU
-* Git / WSL2 (for Linux/Windows hybrid workflows)
-
-### 2. Virtual Environment Installation
+### 1. Clone the Repository
 
 ```bash
-# Clone the project repository
-git clone <your-repo-url>
+git clone [https://github.com/your-username/plantvillage-detection.git](https://github.com/your-username/plantvillage-detection.git)
 cd plantvillage-detection
 
-# Create and activate a virtual environment
-python3 -m venv ml-env
-source ml-env/bin/activate  # On Windows: ml-env\Scripts\activate
-
-# Install required dependencies
-pip install --upgrade pip
-pip install tensorflow opencv-python pillow matplotlib numpy
-
 ```
 
----
-
-## Dataset Ingestion
-
-The images are sourced from the [PlantVillage Dataset](https://www.google.com/search?q=https://github.com/spMohanty/PlantVillage-Dataset). Use Git Sparse Checkout to download only the target crop subsets without pulling the entire ~54,000-image repository:
+### 2. Set Up Virtual Environment
 
 ```bash
-# 1. Create target directories for each crop
-mkdir -p data/raw/{apple_color,cherry_color,corn_color,grape_color,peach_color,pepper_color,potato_color,strawberry_color,tomato_color}
-
-# 2. Clone repository metadata only (fast, no images downloaded yet)
-git clone --depth 1 --filter=blob:none --no-checkout https://github.com/spMohanty/PlantVillage-Dataset.git temp_repo
-cd temp_repo
-
-# 3. Pull only raw/color directory
-git sparse-checkout init --cone
-git sparse-checkout set raw/color
-git checkout master
-
-# 4. Copy each crop into its respective target directory
-cp -r raw/color/Apple* ../data/raw/apple_color/
-cp -r raw/color/Cherry* ../data/raw/cherry_color/
-cp -r raw/color/Corn* ../data/raw/corn_color/
-cp -r raw/color/Grape* ../data/raw/grape_color/
-cp -r raw/color/Peach* ../data/raw/peach_color/
-cp -r raw/color/Pepper* ../data/raw/pepper_color/
-cp -r raw/color/Potato* ../data/raw/potato_color/
-cp -r raw/color/Strawberry* ../data/raw/strawberry_color/
-cp -r raw/color/Tomato* ../data/raw/tomato_color/
-
-# 5. Clean up temporary repository
-cd ..
-rm -rf temp_repo
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
 
 ```
 
----
+### 3. Configure GPU Memory Growth (WSL2 / Linux)
 
-## Model Architecture
-
-The default baseline is an optimized convolutional neural network designed to balance parameter efficiency with representational capacity:
-
-```text
-Input (256, 256, 3)
-   │
-   ▼
-[Rescaling (1/255)] ────► [RandomFlip / RandomRotation / RandomZoom]
-   │
-   ▼
-Conv2D (32, 3x3) ──────► BatchNorm ──► MaxPool2D (2x2)
-   │
-   ▼
-Conv2D (64, 3x3) ──────► BatchNorm ──► MaxPool2D (2x2)
-   │
-   ▼
-Conv2D (128, 3x3) ─────► BatchNorm ──► MaxPool2D (2x2)
-   │
-   ▼
-GlobalAveragePooling2D
-   │
-   ▼
-Dense (128, ReLU) ─────► Dropout (0.4)
-   │
-   ▼
-Dense (num_classes, Softmax)
-
-```
-
----
-
-## Training & Evaluation Pipeline
-
-The notebook `detect.ipynb` is structured into isolated execution blocks:
-
-1. **Setup & Hyperparameters:** Defines `IMG_SIZE = (256, 256)`, `BATCH_SIZE = 32`, and targets the chosen directory (e.g., `DATA_DIR = 'data/raw/apple_color'`).
-2. **Dataset Partitioning:**
-* 80% Training
-* 10% Validation
-* 10% Unseen Test
-
-
-3. **I/O Pipeline Optimization:** Leverages `.cache()` and `prefetch(buffer_size=tf.data.AUTOTUNE)` to prevent I/O bottlenecks.
-4. **Callbacks Configured:**
-* `TensorBoard(log_dir='logs')`
-* `EarlyStopping(monitor='val_loss', patience=8, restore_best_weights=True)`
-* `ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=1e-6)`
-
-
-5. **Loss & Evaluation:** Evaluated using `sparse_categorical_crossentropy` and accuracy on the held-out test split.
-
----
-
-## Inference
-
-To run inference on a single leaf image using the serialized `.keras` model:
+To prevent CUDA out-of-memory errors on shared VRAM systems, the training notebooks and application execute:
 
 ```python
 import os
-import cv2
-import numpy as np
-import tensorflow as tf
+os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
+os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
-# Load serialized model
-model = tf.keras.models.load_model('models/apple_leaf_classifier.keras')
+```
 
-# Preprocess image
-IMG_SIZE = (256, 256)
-image_path = 'path/to/test_leaf.jpg'
+### 4. Run the Web Application
 
-img = cv2.imread(image_path)
-img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-resized = cv2.resize(img, IMG_SIZE)
-input_tensor = np.expand_dims(resized, axis=0)
+Ensure your trained models exist in the `models/` directory, then start the server:
 
-# Predict
-predictions = model.predict(input_tensor)
-class_idx = np.argmax(predictions[0])
-confidence = np.max(predictions[0]) * 100
+```bash
+uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 
-print(f"Predicted class: {class_idx} ({confidence:.2f}%)")
+```
+
+Access the UI at:
+
+```text
+http://localhost:8000
 
 ```
 
 ---
 
-## Common Issues & Solutions
+## 📊 Training Pipeline & Sampling Strategy
 
-| Issue | Cause | Solution |
-| --- | --- | --- |
-| **`svn: path not found`** | GitHub deprecated SVN access. | Use `git sparse-checkout` instead. |
-| **`bash: syntax error near unexpected token '('`** | Crop names like `Cherry_(including_sour)` contain unquoted special characters in bash. | Wrap folder names in quotes or pull `raw/color` in bulk, then copy. |
-| **Training stops early (e.g., Epoch 6)** | `EarlyStopping` triggered because `val_loss` did not beat epoch 1 within `patience=5`. | Increase `patience=8` or `10`, reduce learning rate to `3e-4`, or monitor `val_accuracy`. |
-| **Data leakage across splits** | Using `.take()` and `.skip()` on dynamic/shuffled datasets. | Use `image_dataset_from_directory` with fixed `validation_split`, `seed`, and `subset`. |
+To train efficiently on local hardware without memory exhaustion:
+
+1. **Deterministic Slicing:** A 25% balanced subset (~10,000 images across 40,000 raw samples) is extracted in memory across train (80%), validation (10%), and test (10%) splits.
+2. **Transfer Learning:** The Stage 1 model freezes ImageNet weights on `MobileNetV2`, fine-tuning a custom classification head:
+* `GlobalAveragePooling2D`
+* `BatchNormalization` + `Dropout(0.3)`
+* `Dense(128, activation='relu')`
+* `Dense(9, activation='softmax')`
+
+
+3. **Pipeline Optimization:** Data streaming uses prefetching (`AUTOTUNE`) and bounded shuffle buffers (`128`) instead of in-memory caching to fit WSL2 host RAM constraints.
+
+---
+
+## 📈 Evaluation
+
+Run evaluation cells to output high-resolution performance plots to `reports/figures/` and append per-class classification metrics (`precision`, `recall`, `f1-score`, and `support`) to `reports/evaluation_summary.md`.
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for details.
+
+```
+
+<ElicitationsGroup message="Next steps for packaging and deploying:">
+  <Elicitation label="Generate a Dockerfile for containerized deployment" query="Create a production-ready Dockerfile and docker-compose setup for this FastAPI plant disease app."/>
+  <Elicitation label="Add a batch evaluation script for test sets" query="Write a standalone Python script to evaluate all models in models/ on test sets and update evaluation_summary.md."/>
+</ElicitationsGroup>
+
+```

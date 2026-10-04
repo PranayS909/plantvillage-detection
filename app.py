@@ -174,6 +174,24 @@ async def diagnose(file: UploadFile = File(...)):
 
     return JSONResponse(content=response_payload)
 
+
+# --- 5. Supported Species Endpoint ---
+@app.get("/api/supported-species")
+async def get_supported_species():
+    """Return all recognizable plant species and their diagnostic status."""
+    catalog = []
+    for sp in sorted(SPECIES_CLASSES):
+        has_disease_model = sp.lower() in loaded_disease_models
+        catalog.append({
+            "name": sp.capitalize(),
+            "has_specialist": has_disease_model,
+            "conditions": (
+                DISEASE_REGISTRY[sp.lower()]["classes"]
+                if has_disease_model else []
+            )
+        })
+    return JSONResponse(content={"species": catalog})
+
 # Serve the static UI files
 os.makedirs("static", exist_ok=True)
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
