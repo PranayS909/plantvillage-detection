@@ -19,3 +19,6 @@ python-multipart>=0.0.9
 jupyter>=1.0.0
 requests>=2.31.0
 tensorboard>=2.15.0
+
+# Hugging Face
+huggingface_hub>=0.20.0

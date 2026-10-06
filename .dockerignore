@@ -1,0 +1,28 @@
+# Python & Virtual Environments
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+
+# Raw and Sampled Image Data (DO NOT COPY TO DOCKER)
+data/
+data/raw/
+data/raw/*
+
+# Git & IDE
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# Reports and Notebooks
+notebooks/
+reports/
+logs/
+
+# Docker-related
+Dockerfile
+.dockerignore

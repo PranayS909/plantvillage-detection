@@ -226,18 +226,32 @@
           resDiseaseName.innerText = data.disease.diagnosis;
           resDiseaseConf.innerText = `${data.disease.confidence}% Conf.`;
 
-          if (data.disease.is_healthy) {
+          const isHealthy = data.disease.is_healthy || data.disease.diagnosis.toLowerCase().includes('healthy');
+
+          // Condition 1: Low confidence warning (takes priority)
+          if (data.disease.confidence < 75) {
+            resHealthBadge.className = 'inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800';
+            resHealthBadge.innerText = 'Ambiguous Diagnosis';
+            advisoryBanner.className = 'p-4 rounded-xl text-sm border flex items-start gap-3 bg-amber-50 border-amber-200 text-amber-800';
+            advisoryIcon.className = 'fa-solid fa-triangle-exclamation text-lg mt-0.5 text-amber-600';
+            advisoryTitle.innerText = 'Classification Uncertain';
+            advisoryText.innerText = `Confidence is below 75% (${data.disease.confidence}%). Consider retaking the photo in better lighting.`;
+          }
+          // Condition 2: Confident Healthy Leaf
+          else if (isHealthy) {
             resHealthBadge.className = 'inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800';
             resHealthBadge.innerText = 'Healthy Condition';
             advisoryBanner.className = 'p-4 rounded-xl text-sm border flex items-start gap-3 bg-emerald-50 border-emerald-200 text-emerald-800';
             advisoryIcon.className = 'fa-solid fa-circle-check text-lg mt-0.5 text-emerald-600';
             advisoryTitle.innerText = 'Plant Appears Healthy';
             advisoryText.innerText = 'No noticeable signs of foliar infection or necrosis detected.';
-          } else {
+          }
+          // Condition 3: Confident Infection Detected
+          else {
             resHealthBadge.className = 'inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-rose-100 text-rose-800';
             resHealthBadge.innerText = 'Infection Detected';
             advisoryBanner.className = 'p-4 rounded-xl text-sm border flex items-start gap-3 bg-rose-50 border-rose-200 text-rose-800';
-            advisoryIcon.className = 'fa-solid fa-triangle-exclamation text-lg mt-0.5 text-rose-600';
+            advisoryIcon.className = 'fa-solid fa-circle-xmark text-lg mt-0.5 text-rose-600';
             advisoryTitle.innerText = 'Foliar Disease Identified';
             advisoryText.innerText = `Pathology matches ${data.disease.diagnosis}. Consider isolating the leaf or applying targeted treatment.`;
           }
